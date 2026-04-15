@@ -22,9 +22,15 @@ async function previewExtraction(req, res, next) {
     // ── 1. Extraer texto ──────────────────────────────────────────────────
     const text = await extractText(req.file.buffer, req.file.mimetype);
 
-    if (!text) {
-      return res.status(422).json({
-        error: 'No se pudo extraer texto del archivo. ¿Está vacío o escaneado?',
+    if (!text || text.trim().length < 20) {
+      return res.json({
+        message: 'Archivo sin contenido útil',
+        isEmpty: true,
+        data: {
+          filename: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+        }
       });
     }
 
@@ -35,12 +41,12 @@ async function previewExtraction(req, res, next) {
     return res.json({
       message: 'Extracción exitosa',
       data: {
-        filename:       req.file.originalname,
-        mimetype:       req.file.mimetype,
-        size:           req.file.size,
-        charCount:      text.length,
-        wordCount:      text.trim().split(/\s+/).length,
-        hasFields:      fields.length > 0,
+        filename: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        charCount: text.length,
+        wordCount: text.trim().split(/\s+/).length,
+        hasFields: fields.length > 0,
         fields,          // el usuario puede editar los "label" antes de guardar
         text,            // texto original intacto
         normalizedText,  // texto con {{key}} en lugar de los marcadores
